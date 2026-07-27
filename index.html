@@ -347,7 +347,7 @@
         <p>Monte suas Marmitas e faça seu pedido!</p>
     </header>
 
-    <form id="pedidoForm">
+    <form id="pedidoForm" onsubmit="enviarPedido(event)">
         
         <div class="section" id="area-montagem">
             <h2>🍱 Montar Marmitex (R$ 25,00)</h2>
@@ -362,10 +362,16 @@
             </div>
             
             <h3 style="font-size: 16px; margin-top: 20px; margin-bottom: 10px;">2. Acompanhamentos</h3>
+            
+            <div class="radio-group" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--borda);">
+                <strong style="display: block; margin-bottom: 8px; color: #ccc;">Escolha o Feijão:</strong>
+                <label><input type="radio" name="feijao" value="Feijão Caldo" checked> Feijão Caldo</label>
+                <label><input type="radio" name="feijao" value="Feijão Tropeiro"> Feijão Tropeiro</label>
+            </div>
+
+            <strong style="display: block; margin-bottom: 8px; color: #ccc;">Outros Acompanhamentos:</strong>
             <div class="checkbox-group">
                 <label><input type="checkbox" name="acompanhamento" value="Arroz" checked> Arroz</label>
-                <label><input type="checkbox" name="acompanhamento" value="Feijão Caldo" checked> Feijão Caldo</label>
-                <label><input type="checkbox" name="acompanhamento" value="Feijão Tropeiro" checked> Feijão Tropeiro</label>
                 <label><input type="checkbox" name="acompanhamento" value="Macarrão" checked> Macarrão</label>
                 <label><input type="checkbox" name="acompanhamento" value="Abóbora"> Abóbora</label>
                 <label><input type="checkbox" name="acompanhamento" value="Banana Assada"> Banana Assada</label>
@@ -395,12 +401,19 @@
             <h2>🥤 Bebidas Geladas</h2>
             
             <h3 style="color: #ccc; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">Latas 350ml (R$ 6,00)</h3>
-            <div id="lista-bebidas-lata">
-                </div>
+            <div id="lista-bebidas-lata"></div>
 
             <h3 style="color: #ccc; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 15px;">Garrafas 600ml (R$ 8,00)</h3>
-            <div id="lista-bebidas-600">
-                </div>
+            <div id="lista-bebidas-600"></div>
+
+            <h3 style="color: #ccc; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 15px;">Garrafas 1 Litro (R$ 10,00)</h3>
+            <div id="lista-bebidas-1l"></div>
+
+            <h3 style="color: #ccc; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 15px;">Sucos 500ml (R$ 10,00)</h3>
+            <div id="lista-bebidas-suco500"></div>
+
+            <h3 style="color: #ccc; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 15px;">Sucos 1 Litro (R$ 20,00)</h3>
+            <div id="lista-bebidas-suco1l"></div>
         </div>
 
         <div class="section">
@@ -467,17 +480,24 @@
             </div>
         </div>
 
-        <button type="button" class="btn-enviar" onclick="enviarPedido()">Enviar Pedido pelo WhatsApp 📲</button>
+        <button type="submit" class="btn-enviar">Enviar Pedido pelo WhatsApp 📲</button>
     </form>
 </div>
 
 <script>
-    // ESTADO DO APLICATIVO
-    let carrinhoMarmitas = [];
+    // MELHORIA 2: Constantes de Negócio no topo
+    const NUMERO_WHATSAPP = "5562991936984";
     const taxaEntrega = 3.00;
     const valorMarmitaBase = 25.00;
     const valorSaladaExtra = 2.00;
 
+    function formatarMoeda(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    let carrinhoMarmitas = [];
+
+    // LISTAS DE BEBIDAS
     const bebidasLata = [
         { nome: 'Coca Cola 350ml LATA', preco: 6.00 },
         { nome: 'Coca Cola Zero 350ml LATA', preco: 6.00 },
@@ -497,28 +517,49 @@
         { nome: 'Sprite 600ml', preco: 8.00 }
     ];
 
+    const bebidas1L = [
+        { nome: 'Coca Cola 1L Pet', preco: 10.00 },
+        { nome: 'Coca Cola Zero 1L Pet', preco: 10.00 },
+        { nome: 'Guaraná 1L Pet', preco: 10.00 }
+    ];
+
+    const sucos500 = [
+        { nome: 'Suco de Laranja 500ml', preco: 10.00 },
+        { nome: 'Suco de Maracujá 500ml', preco: 10.00 },
+        { nome: 'Suco de Limão 500ml', preco: 10.00 }
+    ];
+
+    const sucos1L = [
+        { nome: 'Suco de Laranja 1 Litro', preco: 20.00 },
+        { nome: 'Suco de Maracujá 1 Litro', preco: 20.00 },
+        { nome: 'Suco de Limão 1 Litro', preco: 20.00 }
+    ];
+
     let carrinhoBebidas = {};
 
-    // SALVAR E RESTAURAR DADOS DO CLIENTE (localStorage)
     const camposCliente = ['cliente', 'setor', 'rua', 'quadra', 'lote'];
 
-    // INICIALIZAÇÃO E RENDERIZAÇÃO
     window.addEventListener('DOMContentLoaded', () => {
-        // Renderizar Bebidas
         renderizarBebidas('lista-bebidas-lata', bebidasLata, 'lata');
         renderizarBebidas('lista-bebidas-600', bebidas600, '600ml');
+        renderizarBebidas('lista-bebidas-1l', bebidas1L, '1l');
+        renderizarBebidas('lista-bebidas-suco500', sucos500, 'suco500');
+        renderizarBebidas('lista-bebidas-suco1l', sucos1L, 'suco1l');
         atualizarTotais();
 
-        // Carregar dados salvos do cliente
+        carregarDadosCliente();
+    });
+
+    // Função auxiliar para recarregar dados do cliente
+    function carregarDadosCliente() {
         camposCliente.forEach(id => {
             const valorSalvo = localStorage.getItem(`negreiros_${id}`);
             if (valorSalvo) {
                 document.getElementById(id).value = valorSalvo;
             }
         });
-    });
+    }
 
-    // Salvar dados sempre que o usuário digitar nos campos de entrega
     camposCliente.forEach(id => {
         const campo = document.getElementById(id);
         campo.addEventListener('input', () => {
@@ -534,22 +575,22 @@
 
             const div = document.createElement('div');
             div.className = 'bebida-item';
+            /* MELHORIA 4: Adição de aria-label nos botões de controle de bebida */
             div.innerHTML = `
                 <div class="bebida-info">
                     <span class="bebida-nome">${bebida.nome}</span>
-                    <span class="bebida-preco">R$ ${bebida.preco.toFixed(2).replace('.', ',')}</span>
+                    <span class="bebida-preco">${formatarMoeda(bebida.preco)}</span>
                 </div>
                 <div class="quantidade-controle">
-                    <button type="button" class="btn-qtd" onclick="alterarBebida('${idKey}', -1)">-</button>
+                    <button type="button" class="btn-qtd" aria-label="Diminuir quantidade" onclick="alterarBebida('${idKey}', -1)">-</button>
                     <span class="qtd-valor" id="qtd-${idKey}">0</span>
-                    <button type="button" class="btn-qtd" onclick="alterarBebida('${idKey}', 1)">+</button>
+                    <button type="button" class="btn-qtd" aria-label="Aumentar quantidade" onclick="alterarBebida('${idKey}', 1)">+</button>
                 </div>
             `;
             container.appendChild(div);
         });
     }
 
-    // LÓGICA DE CARNES (MÁX 2)
     const carnesCheckboxes = document.querySelectorAll('input[name="carne"]');
     carnesCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
@@ -561,7 +602,6 @@
         });
     });
 
-    // LÓGICA DE BEBIDAS
     function alterarBebida(idKey, valor) {
         let novaQtd = carrinhoBebidas[idKey].qtd + valor;
         if (novaQtd < 0) novaQtd = 0;
@@ -571,7 +611,6 @@
         atualizarTotais();
     }
 
-    // LÓGICA DO CARRINHO DE MARMITAS
     function adicionarAoCarrinho() {
         const carnesSelecionadas = Array.from(document.querySelectorAll('input[name="carne"]:checked')).map(el => el.value);
         if(carnesSelecionadas.length === 0) {
@@ -579,7 +618,10 @@
             return;
         }
 
+        const feijaoSelecionado = document.querySelector('input[name="feijao"]:checked').value;
         const acompSelecionados = Array.from(document.querySelectorAll('input[name="acompanhamento"]:checked')).map(el => el.value);
+        acompSelecionados.unshift(feijaoSelecionado);
+
         const saladaExtraVal = document.querySelector('input[name="salada_extra"]:checked').value;
         
         let subtotalMarmita = valorMarmitaBase;
@@ -595,14 +637,13 @@
 
         carrinhoMarmitas.push(marmita);
         
-        // Resetar formulário de montagem
         document.querySelectorAll('input[name="carne"]').forEach(el => { el.checked = false; el.disabled = false; });
+        document.querySelectorAll('input[name="feijao"]')[0].checked = true;
         document.querySelectorAll('input[name="acompanhamento"]').forEach(el => { 
-            // Volta ao padrão (os 4 primeiros checados)
-            const padroes = ["Arroz", "Feijão (Caldo)", "Feijão (Tropeiro)", "Macarrão"];
+            const padroes = ["Arroz", "Macarrão"];
             el.checked = padroes.includes(el.value);
         });
-        document.querySelectorAll('input[name="salada_extra"]')[0].checked = true; // Volta pra "nao"
+        document.querySelectorAll('input[name="salada_extra"]')[0].checked = true;
 
         renderizarCarrinho();
         atualizarTotais();
@@ -632,9 +673,9 @@
             div.innerHTML = `
                 <div style="flex: 1;">
                     <strong style="color: var(--vermelho-laranja)">Marmitex ${index + 1}</strong> 
-                    <span style="font-size: 14px; color: #aaa;">- R$ ${marmita.preco.toFixed(2).replace('.', ',')}</span><br>
+                    <span style="font-size: 14px; color: #aaa;">- ${formatarMoeda(marmita.preco)}</span><br>
                     <small style="color: #ddd;">🥩 ${marmita.carnes.join(', ')}</small><br>
-                    <small style="color: #ddd;">🥗 ${marmita.acompanhamentos.length > 0 ? 'Acompanhamentos padrão' : 'Só carne'}</small>
+                    <small style="color: #ddd;">🥗 ${marmita.acompanhamentos.join(', ')}</small>
                     ${marmita.saladaExtra ? '<br><small style="color: #25D366;">+ Salada Extra Separada</small>' : ''}
                 </div>
                 <button type="button" class="btn-remover" onclick="removerDoCarrinho(${marmita.id})">Remover</button>
@@ -643,7 +684,6 @@
         });
     }
 
-    // CÁLCULO FINANCEIRO E ATUALIZAÇÃO DOS DOIS TOTAIS (RODAPÉ E TOPO)
     function atualizarTotais() {
         let totalMarmitas = carrinhoMarmitas.reduce((acc, m) => acc + m.preco, 0);
         
@@ -656,7 +696,6 @@
             }
         }
 
-        // Se não tiver nada, total é zero (não cobra entrega)
         if (carrinhoMarmitas.length === 0 && totalBebidas === 0) {
             document.getElementById('valor-total').innerText = 'R$ 0,00';
             document.getElementById('valor-total-topo').innerText = 'R$ 0,00';
@@ -665,18 +704,17 @@
         }
 
         let totalGeral = totalMarmitas + totalBebidas + taxaEntrega;
-        const totalFormatado = `R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
+        const totalFormatado = formatarMoeda(totalGeral);
         
         document.getElementById('valor-total').innerText = totalFormatado;
         document.getElementById('valor-total-topo').innerText = totalFormatado;
         document.getElementById('detalhes-valores').innerHTML = `
-            Marmitas: R$ ${totalMarmitas.toFixed(2).replace('.', ',')} <br>
-            Bebidas: R$ ${totalBebidas.toFixed(2).replace('.', ',')} <br>
-            Taxa de Entrega: R$ ${taxaEntrega.toFixed(2).replace('.', ',')}
+            Marmitas: ${formatarMoeda(totalMarmitas)} <br>
+            Bebidas: ${formatarMoeda(totalBebidas)} <br>
+            Taxa de Entrega: ${formatarMoeda(taxaEntrega)}
         `;
     }
 
-    // LÓGICA DE PAGAMENTO (TROCO)
     const pagamentoSelect = document.getElementById('pagamento');
     const trocoContainer = document.getElementById('troco-container');
     
@@ -688,8 +726,10 @@
         }
     });
 
-    // ENVIO PARA O WHATSAPP
-    function enviarPedido() {
+    /* MELHORIA 1: Ajuste na função para receber o evento de submit */
+    function enviarPedido(event) {
+        event.preventDefault(); // Impede o recarregamento da página
+
         if(carrinhoMarmitas.length === 0) {
             alert('Você precisa adicionar pelo menos 1 Marmitex ao pedido!');
             return;
@@ -703,15 +743,33 @@
         const pagamento = document.getElementById('pagamento').value;
         const observacoes = document.getElementById('observacoes').value.trim();
         
-        if(!cliente || !setor || !rua || !quadra || !lote || !pagamento) {
-            alert('Por favor, preencha todos os campos obrigatórios (Nome, Endereço e Pagamento).');
-            return;
+        let totalMarmitas = carrinhoMarmitas.reduce((acc, m) => acc + m.preco, 0);
+        let totalBebidas = 0;
+        for (let key in carrinhoBebidas) {
+            if (carrinhoBebidas[key].qtd > 0) totalBebidas += (carrinhoBebidas[key].preco * carrinhoBebidas[key].qtd);
         }
+        let totalGeral = totalMarmitas + totalBebidas + taxaEntrega;
 
         let pagamentoTexto = pagamento;
         if(pagamento === 'Dinheiro') {
-            const troco = document.getElementById('troco').value.trim();
-            pagamentoTexto = `DINHEIRO (Troco para R$ ${troco || 'Não precisa'})`;
+            const trocoStr = document.getElementById('troco').value.trim();
+            if(trocoStr) {
+                let trocoValor = parseFloat(trocoStr.replace(',', '.'));
+                
+                if(isNaN(trocoValor)) {
+                    alert('Por favor, informe um valor numérico válido para o troco.');
+                    return;
+                }
+                
+                if(trocoValor < totalGeral) {
+                    alert(`O valor do troco (${formatarMoeda(trocoValor)}) não pode ser menor que o total do pedido (${formatarMoeda(totalGeral)}).`);
+                    return;
+                }
+                
+                pagamentoTexto = `DINHEIRO (Troco para ${formatarMoeda(trocoValor)})`;
+            } else {
+                pagamentoTexto = `DINHEIRO (Não precisa de troco)`;
+            }
         } else {
             pagamentoTexto = pagamento.toUpperCase();
         }
@@ -735,7 +793,6 @@
             mensagem += `\n`;
         });
 
-        // Adiciona bebidas à mensagem se houver
         let temBebida = false;
         let strBebidas = `🥤 *Bebidas:*\n`;
         for (let key in carrinhoBebidas) {
@@ -749,7 +806,6 @@
             mensagem += strBebidas + `\n`;
         }
 
-        // Adiciona as Observações
         if(observacoes) {
             mensagem += `📝 *Observações:* ${observacoes}\n\n`;
         }
@@ -757,26 +813,32 @@
         mensagem += `💳 *Forma de Pagamento:* ${pagamentoTexto}\n\n`;
         mensagem += `⚠️ *Aviso:* Talheres descartáveis devem ser solicitados ao entregador.\n\n`;
         
-        // Recalcular totais para a mensagem final
-        let totalMarmitas = carrinhoMarmitas.reduce((acc, m) => acc + m.preco, 0);
-        let totalBebidas = 0;
-        for (let key in carrinhoBebidas) {
-            if (carrinhoBebidas[key].qtd > 0) totalBebidas += (carrinhoBebidas[key].preco * carrinhoBebidas[key].qtd);
-        }
-        let totalGeral = totalMarmitas + totalBebidas + taxaEntrega;
-
         mensagem += `--- \n`;
-        mensagem += `Subtotal Marmitas: R$ ${totalMarmitas.toFixed(2).replace('.', ',')}\n`;
+        mensagem += `Subtotal Marmitas: ${formatarMoeda(totalMarmitas)}\n`;
         if (totalBebidas > 0) {
-            mensagem += `Subtotal Bebidas: R$ ${totalBebidas.toFixed(2).replace('.', ',')}\n`;
+            mensagem += `Subtotal Bebidas: ${formatarMoeda(totalBebidas)}\n`;
         }
-        mensagem += `Taxa de Entrega (Única): R$ ${taxaEntrega.toFixed(2).replace('.', ',')}\n`;
-        mensagem += `💰 *TOTAL DO PEDIDO: R$ ${totalGeral.toFixed(2).replace('.', ',')}*\n`;
+        mensagem += `Taxa de Entrega (Única): ${formatarMoeda(taxaEntrega)}\n`;
+        mensagem += `💰 *TOTAL DO PEDIDO: ${formatarMoeda(totalGeral)}*\n`;
         mensagem += `--- \n`;
         mensagem += `*(Aguarde a confirmação do seu pedido!)*`;
 
-        const urlWhatsApp = `https://wa.me/5562991936984?text=${encodeURIComponent(mensagem)}`;
+        /* MELHORIA 2: Usando a constante do número */
+        const urlWhatsApp = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
         window.open(urlWhatsApp, '_blank');
+
+        /* MELHORIA 3: Reset do carrinho e formulário após o envio */
+        carrinhoMarmitas = [];
+        for (let key in carrinhoBebidas) {
+            carrinhoBebidas[key].qtd = 0;
+            document.getElementById(`qtd-${key}`).innerText = '0';
+        }
+        document.getElementById('pedidoForm').reset();
+        carregarDadosCliente(); // Recarrega imediatamente os dados de endereço salvos no localStorage
+        document.getElementById('troco-container').style.display = 'none'; // Esconde a div de troco
+        
+        renderizarCarrinho();
+        atualizarTotais();
     }
 </script>
 
