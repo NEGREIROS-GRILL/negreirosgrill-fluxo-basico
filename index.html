@@ -29,6 +29,37 @@
             min-height: 100vh;
             box-shadow: 0 0 20px rgba(255, 69, 0, 0.1);
             padding-bottom: 20px;
+            position: relative;
+        }
+
+        /* BARRA SUPERIOR FIXA / FLUTUANTE DO TOTAL */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: var(--vermelho-laranja);
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid #cc3700;
+        }
+
+        .top-bar-titulo {
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .top-bar-valor {
+            background-color: rgba(0, 0, 0, 0.35);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 18px;
+            color: #fff;
         }
 
         header {
@@ -199,7 +230,7 @@
             color: white;
         }
 
-        /* Inputs de Endereço */
+        /* Inputs de Endereço e Textarea */
         .input-group {
             display: flex;
             flex-direction: column;
@@ -217,7 +248,7 @@
             color: #ccc;
         }
 
-        input[type="text"], select {
+        input[type="text"], select, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--borda);
@@ -226,9 +257,15 @@
             color: #fff;
             font-size: 16px;
             box-sizing: border-box;
+            font-family: inherit;
         }
 
-        input[type="text"]:focus, select:focus {
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--vermelho-laranja);
         }
@@ -300,6 +337,11 @@
 <body>
 
 <div class="container">
+    <div class="top-bar">
+        <span class="top-bar-titulo">💰 Total do Pedido:</span>
+        <span class="top-bar-valor" id="valor-total-topo">R$ 0,00</span>
+    </div>
+
     <header>
         <h1>🔥 Negreiros Grill</h1>
         <p>Monte suas Marmitas e faça seu pedido!</p>
@@ -307,7 +349,6 @@
 
     <form id="pedidoForm">
         
-        <!-- MONTAGEM DA MARMITA -->
         <div class="section" id="area-montagem">
             <h2>🍱 Montar Marmitex (R$ 25,00)</h2>
             
@@ -326,10 +367,13 @@
                 <label><input type="checkbox" name="acompanhamento" value="Feijão (Caldo)" checked> Feijão (Caldo)</label>
                 <label><input type="checkbox" name="acompanhamento" value="Feijão (Tropeiro)" checked> Feijão (Tropeiro)</label>
                 <label><input type="checkbox" name="acompanhamento" value="Macarrão" checked> Macarrão</label>
+                <label><input type="checkbox" name="acompanhamento" value="Abóbora"> Abóbora</label>
+                <label><input type="checkbox" name="acompanhamento" value="Banana Assada"> Banana Assada</label>
+                <label><input type="checkbox" name="acompanhamento" value="Salada de Tomate e Beterraba"> Salada de Tomate e Beterraba</label>
                 <label><input type="checkbox" name="acompanhamento" value="Batata doce"> Batata doce</label>
                 <label><input type="checkbox" name="acompanhamento" value="Pure de Batata"> Pure de Batata</label>
                 <label><input type="checkbox" name="acompanhamento" value="Salada de maionese"> Salada de maionese</label>
-                <label><input type="checkbox" name="acompanhamento" value="Vinagrete)"> Vinagrete</label>
+                <label><input type="checkbox" name="acompanhamento" value="Vinagrete"> Vinagrete</label>
             </div>
 
             <h3 style="font-size: 16px; margin-top: 20px; margin-bottom: 10px;">3. Salada Adicional</h3>
@@ -341,30 +385,31 @@
             <button type="button" class="btn-adicionar" onclick="adicionarAoCarrinho()">+ ADICIONAR ESTA MARMITEX</button>
         </div>
 
-        <!-- RESUMO DOS PEDIDOS (CARRINHO) -->
         <div class="section" id="secao-carrinho" style="display: none;">
             <h2>🛒 Suas Marmitas</h2>
             <div class="carrinho-box" id="lista-carrinho">
-                <!-- Itens adicionados aparecerão aqui -->
-            </div>
+                </div>
         </div>
 
-        <!-- SEÇÃO DE BEBIDAS -->
         <div class="section">
             <h2>🥤 Bebidas Geladas</h2>
             
             <h3 style="color: #ccc; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px;">Latas 350ml (R$ 6,00)</h3>
             <div id="lista-bebidas-lata">
-                <!-- Preenchido via JS -->
-            </div>
+                </div>
 
             <h3 style="color: #ccc; font-size: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 15px;">Garrafas 600ml (R$ 8,00)</h3>
             <div id="lista-bebidas-600">
-                <!-- Preenchido via JS -->
+                </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Observações Gerais do Pedido</h2>
+            <div class="input-field">
+                <textarea id="observacoes" placeholder="Ex: sem pimenta na marmita 1, troco para 100, pessoa diabética..."></textarea>
             </div>
         </div>
 
-        <!-- DADOS DE ENTREGA -->
         <div class="section">
             <h2>📍 Dados de Entrega</h2>
             <div class="input-group">
@@ -393,7 +438,6 @@
             </div>
         </div>
 
-        <!-- PAGAMENTO -->
         <div class="section">
             <h2>💳 Forma de Pagamento (Na Entrega)</h2>
             <div class="input-field">
@@ -455,12 +499,32 @@
 
     let carrinhoBebidas = {};
 
+    // SALVAR E RESTAURAR DADOS DO CLIENTE (localStorage)
+    const camposCliente = ['cliente', 'setor', 'rua', 'quadra', 'lote'];
+
     // INICIALIZAÇÃO E RENDERIZAÇÃO
-    window.onload = () => {
+    window.addEventListener('DOMContentLoaded', () => {
+        // Renderizar Bebidas
         renderizarBebidas('lista-bebidas-lata', bebidasLata, 'lata');
         renderizarBebidas('lista-bebidas-600', bebidas600, '600ml');
         atualizarTotais();
-    };
+
+        // Carregar dados salvos do cliente
+        camposCliente.forEach(id => {
+            const valorSalvo = localStorage.getItem(`negreiros_${id}`);
+            if (valorSalvo) {
+                document.getElementById(id).value = valorSalvo;
+            }
+        });
+    });
+
+    // Salvar dados sempre que o usuário digitar nos campos de entrega
+    camposCliente.forEach(id => {
+        const campo = document.getElementById(id);
+        campo.addEventListener('input', () => {
+            localStorage.setItem(`negreiros_${id}`, campo.value.trim());
+        });
+    });
 
     function renderizarBebidas(containerId, lista, categoria) {
         const container = document.getElementById(containerId);
@@ -579,7 +643,7 @@
         });
     }
 
-    // CÁLCULO FINANCEIRO
+    // CÁLCULO FINANCEIRO E ATUALIZAÇÃO DOS DOIS TOTAIS (RODAPÉ E TOPO)
     function atualizarTotais() {
         let totalMarmitas = carrinhoMarmitas.reduce((acc, m) => acc + m.preco, 0);
         
@@ -595,13 +659,16 @@
         // Se não tiver nada, total é zero (não cobra entrega)
         if (carrinhoMarmitas.length === 0 && totalBebidas === 0) {
             document.getElementById('valor-total').innerText = 'R$ 0,00';
+            document.getElementById('valor-total-topo').innerText = 'R$ 0,00';
             document.getElementById('detalhes-valores').innerText = 'Adicione itens para ver o total.';
             return;
         }
 
         let totalGeral = totalMarmitas + totalBebidas + taxaEntrega;
+        const totalFormatado = `R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
         
-        document.getElementById('valor-total').innerText = `R$ ${totalGeral.toFixed(2).replace('.', ',')}`;
+        document.getElementById('valor-total').innerText = totalFormatado;
+        document.getElementById('valor-total-topo').innerText = totalFormatado;
         document.getElementById('detalhes-valores').innerHTML = `
             Marmitas: R$ ${totalMarmitas.toFixed(2).replace('.', ',')} <br>
             Bebidas: R$ ${totalBebidas.toFixed(2).replace('.', ',')} <br>
@@ -634,6 +701,7 @@
         const quadra = document.getElementById('quadra').value.trim();
         const lote = document.getElementById('lote').value.trim();
         const pagamento = document.getElementById('pagamento').value;
+        const observacoes = document.getElementById('observacoes').value.trim();
         
         if(!cliente || !setor || !rua || !quadra || !lote || !pagamento) {
             alert('Por favor, preencha todos os campos obrigatórios (Nome, Endereço e Pagamento).');
@@ -648,44 +716,32 @@
             pagamentoTexto = pagamento.toUpperCase();
         }
 
-        let mensagem = `--- 🔥 *PEDIDO NEGREIROS GRILL* 🔥 ---
-`;
-        mensagem += `👤 *Cliente:* ${cliente}
-`;
-        mensagem += `📍 *Endereço:* Rua ${rua}, Qd ${quadra}, Lt ${lote}, Setor ${setor}
-
-`;
+        let mensagem = `--- 🔥 *PEDIDO NEGREIROS GRILL* 🔥 ---\n`;
+        mensagem += `👤 *Cliente:* ${cliente}\n`;
+        mensagem += `📍 *Endereço:* Rua ${rua}, Qd ${quadra}, Lt ${lote}, Setor ${setor}\n\n`;
         
-        mensagem += `🍱 *ITENS DO PEDIDO:*
-`;
+        mensagem += `🍱 *ITENS DO PEDIDO:*\n`;
         carrinhoMarmitas.forEach((m, i) => {
-            mensagem += `*Marmitex ${i + 1}*
-`;
-            mensagem += `🥩 Carnes: ${m.carnes.join(', ')}
-`;
+            mensagem += `*Marmitex ${i + 1}*\n`;
+            mensagem += `🥩 Carnes: ${m.carnes.join(', ')}\n`;
             if(m.acompanhamentos.length > 0) {
-                mensagem += `🥗 Acomp: ${m.acompanhamentos.join(', ')}
-`;
+                mensagem += `🥗 Acomp: ${m.acompanhamentos.join(', ')}\n`;
             } else {
-                mensagem += `🥗 Acomp: Nenhum (Só carne)
-`;
+                mensagem += `🥗 Acomp: Nenhum (Só carne)\n`;
             }
             if(m.saladaExtra) {
-                mensagem += `🌱 *Com Salada Separada (+ R$ 2,00)*
-`;
+                mensagem += `🌱 *Com Salada Separada (+ R$ 2,00)*\n`;
             }
             mensagem += `\n`;
         });
 
         // Adiciona bebidas à mensagem se houver
         let temBebida = false;
-        let strBebidas = `🥤 *Bebidas:*
-`;
+        let strBebidas = `🥤 *Bebidas:*\n`;
         for (let key in carrinhoBebidas) {
             if (carrinhoBebidas[key].qtd > 0) {
                 temBebida = true;
-                strBebidas += `- ${carrinhoBebidas[key].qtd}x ${carrinhoBebidas[key].nome}
-`;
+                strBebidas += `- ${carrinhoBebidas[key].qtd}x ${carrinhoBebidas[key].nome}\n`;
             }
         }
         
@@ -693,12 +749,13 @@
             mensagem += strBebidas + `\n`;
         }
 
-        mensagem += `💳 *Forma de Pagamento:* ${pagamentoTexto}
+        // Adiciona as Observações
+        if(observacoes) {
+            mensagem += `📝 *Observações:* ${observacoes}\n\n`;
+        }
 
-`;
-        mensagem += `⚠️ *Aviso:* Talheres descartáveis devem ser solicitados ao entregador.
-
-`;
+        mensagem += `💳 *Forma de Pagamento:* ${pagamentoTexto}\n\n`;
+        mensagem += `⚠️ *Aviso:* Talheres descartáveis devem ser solicitados ao entregador.\n\n`;
         
         // Recalcular totais para a mensagem final
         let totalMarmitas = carrinhoMarmitas.reduce((acc, m) => acc + m.preco, 0);
@@ -708,23 +765,16 @@
         }
         let totalGeral = totalMarmitas + totalBebidas + taxaEntrega;
 
-        mensagem += `--- 
-`;
-        mensagem += `Subtotal Marmitas: R$ ${totalMarmitas.toFixed(2).replace('.', ',')}
-`;
+        mensagem += `--- \n`;
+        mensagem += `Subtotal Marmitas: R$ ${totalMarmitas.toFixed(2).replace('.', ',')}\n`;
         if (totalBebidas > 0) {
-            mensagem += `Subtotal Bebidas: R$ ${totalBebidas.toFixed(2).replace('.', ',')}
-`;
+            mensagem += `Subtotal Bebidas: R$ ${totalBebidas.toFixed(2).replace('.', ',')}\n`;
         }
-        mensagem += `Taxa de Entrega (Única): R$ ${taxaEntrega.toFixed(2).replace('.', ',')}
-`;
-        mensagem += `💰 *TOTAL DO PEDIDO: R$ ${totalGeral.toFixed(2).replace('.', ',')}*
-`;
-        mensagem += `--- 
-`;
+        mensagem += `Taxa de Entrega (Única): R$ ${taxaEntrega.toFixed(2).replace('.', ',')}\n`;
+        mensagem += `💰 *TOTAL DO PEDIDO: R$ ${totalGeral.toFixed(2).replace('.', ',')}*\n`;
+        mensagem += `--- \n`;
         mensagem += `*(Aguarde a confirmação do seu pedido!)*`;
 
-        // Mantive o mesmo número de WhatsApp de destino que estava no código original
         const urlWhatsApp = `https://wa.me/5562991936984?text=${encodeURIComponent(mensagem)}`;
         window.open(urlWhatsApp, '_blank');
     }
